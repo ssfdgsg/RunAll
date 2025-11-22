@@ -1,0 +1,12 @@
+[submodule "bff"]
+	path = bff
+	url = file:///D:/code/go/runAll/.repos/bff.git
+[submodule "product"]
+	path = product
+	url = file:///D:/code/go/runAll/.repos/product.git
+[submodule "resource"]
+	path = resource
+	url = file:///D:/code/go/runAll/.repos/resource.git
+[submodule "user"]
+	path = user
+	url = file:///D:/code/go/runAll/.repos/user.git
