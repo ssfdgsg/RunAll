@@ -9,4 +9,4 @@
 	url = file:///D:/code/go/runAll/.repos/resource.git
 [submodule "user"]
 	path = user
-	url = file:///D:/code/go/runAll/.repos/user.git
+	url = https://github.com/ssfdgsg/RunAll_User.git
