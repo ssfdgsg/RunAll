@@ -2,11 +2,11 @@ name: Update submodules to latest main
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # 每 30 分钟检查一次
-  workflow_dispatch:         # 支持手动触发
+    - cron: "0 0 */3 * *"
+  workflow_dispatch:
   push:
     branches:
-      - main                 # 当 main 有提交时也试图同步 submodules
+      - main
 
 jobs:
   update-submodules:
@@ -16,17 +16,16 @@ jobs:
     - name: Checkout main repo
       uses: actions/checkout@v4
       with:
-        submodules: true
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Pull latest commits for all submodules
-      run: |
-        git submodule foreach 'git fetch origin main && git checkout main && git pull origin main'
-
-    - name: Commit & push the submodule updates
+    - name: Update submodules to latest main
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
+        git submodule update --init --recursive --remote
+        git submodule foreach 'git checkout main && git pull origin main'
+
+    - name: Commit & push the submodule updates
+      run: |
         git add .
-        git commit -m "Auto-update submodules to latest main" || echo "No updates"
-        git push
+        git diff --cached --quiet || (git commit -m "Auto-update submodules to latest main" && git push)
