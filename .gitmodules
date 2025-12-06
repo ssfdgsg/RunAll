@@ -1,12 +1,16 @@
 [submodule "bff"]
 	path = bff
 	url = https://github.com/ssfdgsg/RunAll_BFF.git
+	branch = main
 [submodule "product"]
 	path = product
 	url = https://github.com/ssfdgsg/RunAll_Product.git
+	branch = main
 [submodule "resource"]
 	path = resource
 	url = https://github.com/ssfdgsg/RunAll_Resource.git
+	branch = main
 [submodule "user"]
 	path = user
 	url = https://github.com/ssfdgsg/RunAll_User.git
+	branch = main
