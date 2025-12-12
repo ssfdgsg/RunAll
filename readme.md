@@ -73,8 +73,6 @@ Instance（用户实例） 是唯一聚合根，其他模型（规格 / 状态 /
 | --------------------------------- | ------ | -------------------------------- |
 | InstanceID                        | int64  | 雪花变体主键 [UserID:24][TS:36][Seq:4] |
 | UserID                            | int    | 用户 ID                            |
-| ProductID                         | int    | 套餐 ID                            |
-| OrderID                           | int    | 订单 ID                            |
 | Name                              | string | 实例名称                             |
 | Status                            | enum   | 核心状态机字段                          |
 | CreatedAt / UpdatedAt / DeletedAt | time   | 生命周期字段                           |
@@ -164,7 +162,8 @@ HSET instance:k8s:{instance_id} \
   "event_type": "INSTANCE_CREATED",
   "instance_id": 912345678901,
   "timestamp": 1739525000,
-  "operator": 88,
+  "user_id": 88,
+  "name": "my-llm-instance",
   "data": {
     "cpu": 2,
     "memory": 4096,
@@ -219,3 +218,18 @@ ProductSpec 实例配置
 | Image      | string |  镜像来源    |
 | ConfigJSON | json   | 扩展字段 |
 
+Order 订单信息（聚合根）
+
+| 字段         | 类型     | 说明                                           |
+| ---------- | ------ | -------------------------------------------- |
+| OrderID    | int64  | 订单唯一标识（主键，雪花ID）                              |
+| UserID     | int    | 用户ID（关联User Domain）                          |
+| ProductID  | int    | 商品ID（关联Product）                              |
+| InstanceID | int64  | 实例ID（订单创建成功后关联的实例，关联Resource Domain）         |
+| Status     | enum   | 订单状态：PENDING / PAID / CANCELLED / COMPLETED |
+| Amount     | uint32 | 订单金额（分）                                      |
+| CreatedAt  | time   | 创建时间                                         |
+| UpdatedAt  | time   | 更新时间                                         |
+| PaidAt     | time   | 支付时间（可为null）                                 |
+| CancelledAt | time  | 取消时间（可为null）                                 |
+| CompletedAt | time  | 完成时间（可为null）                                 |
