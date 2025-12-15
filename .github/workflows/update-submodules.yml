@@ -25,6 +25,11 @@ jobs:
         git submodule update --init --recursive --remote
         git submodule foreach 'git checkout main && git pull origin main'
 
+    - name: Rebase onto origin/main
+      run: |
+        git fetch origin main
+        git rebase origin/main
+
     - name: Commit & push the submodule updates
       run: |
         git add .
