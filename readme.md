@@ -37,7 +37,7 @@
 
 | 字段           | 类型       | 说明                             |
 | ------------ | -------- | ------------------------------ |
-| ID           | int      | 用户唯一标识（主键，自增或雪花）               |
+| ID           | uuid      | 用户唯一标识（主键，自增或雪花）               |
 | Email        | string   | 登录账号，需唯一                       |
 | PasswordHash | string   | 加密后的密码（如 bcrypt）               |
 | Nickname     | string   | 用户昵称                           |
@@ -71,7 +71,7 @@ Instance（用户实例） 是唯一聚合根，其他模型（规格 / 状态 /
 
 | 字段                                | 类型     | 说明                               |
 | --------------------------------- | ------ | -------------------------------- |
-| InstanceID                        | int64  | 雪花变体主键 [UserID:24][TS:36][Seq:4] |
+| InstanceID                        | int64  | 雪花变体主键 [UserID:24][TS:36][Ex:1][Seq:3] |
 | UserID                            | int    | 用户 ID                            |
 | Name                              | string | 实例名称                             |
 | Status                            | enum   | 核心状态机字段                          |
@@ -194,42 +194,42 @@ HSET instance:k8s:{instance_id} \
 
 负责整个业务链路中“可售卖内容”与“交易行为”的核心逻辑
 
-### 聚合根  
+### 聚合根（Product Aggregate）
 
-| 字段          | 类型           | 说明                 |
-| ----------- | ------------ | ------------------ |
-| ProductID   | int          | 主键                 |
-| Name        | string       | 名称                 |
-| Description | string       | 描述                 |
-| Status      | enum         | ENABLED / DISABLED |
-| CreatedAt   | time         | 创建                 |
-| UpdatedAt   | time         | 更新                 |
-| Spec        | ProductSpec  | 实例配置值对象                |
-| Price       | uint32 | 价格                |
+| 字段          | 类型          | 说明                                              |
+| ----------- | ----------- | ----------------------------------------------- |
+| ProductID   | int64       | 主键（雪花ID），适配高并发下的分布式ID                          |
+| Name        | string      | 套餐名称，例如："基础型实例"、"深度学习专用型"                   |
+| Description | string      | 详细描述                                            |
+| Status      | enum        | ENABLED / DISABLED，控制是否可见/可售                   |
+| Price       | int64       | 单价（分），避免金额计算精度丢失                                |
+| SpecID        | int64       | 规格值对象（Value Object），一旦创建不可修改，若规格变动应发布新商品       |
+| CreatedAt   | time        | 创建时间                                            |
+| UpdatedAt   | time        | 更新时间                                            |
 
 ### 子实体
 
-ProductSpec 实例配置
-| 字段         | 类型     | 说明   |
-| ---------- | ------ | ---- |
-| CPU        | int    |  单位c    |
-| Memory     | int    |  单位h    |
-| GPU        | int    |  可为null, int 代表不同类型   |
-| Image      | string |  镜像来源    |
-| ConfigJSON | json   | 扩展字段 |
+ProductSpec（值对象 Value Object，一经创建不可删除）
 
-Order 订单信息（聚合根）
+| 字段         | 类型     | 说明                             |
+| ---------- | ------ | ------------------------------ |
+| SpecID     | int64  | 自增主键                      |
+| CPU        | int    | 单位：核 (Core)                   |
+| Memory     | int    | 单位：GB                         |
+| GPU        | int    | 型号/核心数（可为空）                   |
+| Image      | string | 镜像 ID 或名称                     |
+| ConfigJSON | json   | 扩展配置（如磁盘类型、带宽等）               |
 
-| 字段         | 类型     | 说明                                           |
-| ---------- | ------ | -------------------------------------------- |
-| OrderID    | int64  | 订单唯一标识（主键，雪花ID）                              |
-| UserID     | int    | 用户ID（关联User Domain）                          |
-| ProductID  | int    | 商品ID（关联Product）                              |
-| InstanceID | int64  | 实例ID（订单创建成功后关联的实例，关联Resource Domain）         |
-| Status     | enum   | 订单状态：PENDING / PAID / CANCELLED / COMPLETED |
-| Amount     | uint32 | 订单金额（分）                                      |
-| CreatedAt  | time   | 创建时间                                         |
-| UpdatedAt  | time   | 更新时间                                         |
-| PaidAt     | time   | 支付时间（可为null）                                 |
-| CancelledAt | time  | 取消时间（可为null）                                 |
-| CompletedAt | time  | 完成时间（可为null）                                 |
+Order 订单信息
+
+| 字段              | 类型          | 说明                                                      |
+| --------------- | ----------- | ------------------------------------------------------- |
+| OrderID         | int64       | 订单主键（雪花ID）                                              |
+| UserID          | uuid       | 用户 ID，关联用户域                                             |
+| ProductID       | int64       | 商品 ID，仅作为溯源关联                              |
+| Amount          | int64       | 订单金额（分），统一符号位和精度                                        |
+| InstanceID      | int64       | 资源实例 ID（可为空），作为支付后的关联属性，资源创建成功后填充                       |
+| Status          | enum        | 订单状态：PENDING / PAID / CANCELLED / COMPLETED              |
+| CreatedAt       | time        | 下单时间                                                    |
+| PaidAt          | time        | 支付时间（可为空）                                               |
+| CompletedAt     | time        | 交付/完成时间（可为空），资源创建成功后的反馈时间                              |
