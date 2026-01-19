@@ -71,7 +71,7 @@ Instance（用户实例） 是唯一聚合根，其他模型（规格 / 状态 /
 
 | 字段                                | 类型     | 说明                               |
 | --------------------------------- | ------ | -------------------------------- |
-| InstanceID                        | int64  | 雪花变体主键 [UserID:24][TS:36][Ex:1][Seq:3] |
+| InstanceID                        | int64  | 雪花变体主键 [UserID:16][Ex:4][TS:41][Seq:3] |
 | UserID                            | int    | 用户 ID                            |
 | Name                              | string | 实例名称                             |
 | Status                            | enum   | 核心状态机字段                          |
@@ -221,15 +221,15 @@ ProductSpec（值对象 Value Object，一经创建不可删除）
 | ConfigJSON | json   | 扩展配置（如磁盘类型、带宽等）               |
 
 Order 订单信息
-
-| 字段              | 类型          | 说明                                                      |
-| --------------- | ----------- | ------------------------------------------------------- |
-| OrderID         | int64       | 订单主键（雪花ID）                                              |
-| UserID          | uuid       | 用户 ID，关联用户域                                             |
-| ProductID       | int64       | 商品 ID，仅作为溯源关联                              |
-| Amount          | int64       | 订单金额（分），统一符号位和精度                                        |
-| InstanceID      | int64       | 资源实例 ID（可为空），作为支付后的关联属性，资源创建成功后填充                       |
-| Status          | enum        | 订单状态：PENDING / PAID / CANCELLED / COMPLETED              |
-| CreatedAt       | time        | 下单时间                                                    |
-| PaidAt          | time        | 支付时间（可为空）                                               |
-| CompletedAt     | time        | 交付/完成时间（可为空），资源创建成功后的反馈时间                              |
+| 字段          | 类型    | 说明                                       |
+| ----------- | ----- | ---------------------------------------- |
+| OrderID     | int64 | 订单主键（雪花ID）                               |
+| UserID      | uuid  | 用户 ID                                    |
+| ProductID   | int64 | 商品 ID                                    |
+| ReqID       | int64 | Redis 生成的请求号（用于幂等/判重），与 ProductID 组成唯一索引 |
+| Amount      | int64 | 订单金额（分）                                  |
+| InstanceID  | int64 | 资源实例 ID（可为空），资源创建成功后填充                   |
+| Status      | enum  | PENDING / PAID / CANCELLED / COMPLETED   |
+| CreatedAt   | time  | 下单时间                                     |
+| PaidAt      | time  | 支付时间（可为空）                                |
+| CompletedAt | time  | 交付/完成时间（可为空）                             |
